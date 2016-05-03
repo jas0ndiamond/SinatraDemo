@@ -2,6 +2,8 @@ require 'sinatra'
 require 'net/http'
 require "base64"
 
+set :bind, '0.0.0.0'
+
 class MultiCam < Sinatra::Base
   
   def initialize(app = nil, params = {})
