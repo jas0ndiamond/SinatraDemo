@@ -4,7 +4,7 @@ helpers do
   def protected!
     return if authorized?
     headers['WWW-Authenticate'] = 'Basic realm="Restricted Area"'
-    halt 401, "Not authorized\n"
+    halt 401, "Totally Not authorized\n"
   end
 
   def authorized?
@@ -13,14 +13,41 @@ helpers do
   end
 end
 
+######################
 count = 0
 
-get '/add' do
+######################
+
+get '/inc' do
   protected!
-  count += 1
-  "Added count at #{Time.now}"
+  Mutex.new.synchronize do
+    count += 1
+  end
+  "Added one at #{Time.now}"
 end
 
 get '/show' do
-  "<b>Count is:</b> #{count}"
+  Mutex.new.synchronize do
+    "<b>Count is:</b> #{count} at #{Time.now}"
+  end
 end
+
+get '/add' do
+  protected!
+  val = params[:val]
+    
+  result = "invalid parameter"
+    
+  if val != nil and val =~ /\A[-+]?[0-9]*\.?[0-9]+\Z/
+    Mutex.new.synchronize do
+      count += val.to_i
+      result = "Added #{val} at #{Time.now}"
+    end
+  end
+  
+  return result
+end
+
+######################
+
+puts "Launched AuthDemo with count #{count}"
